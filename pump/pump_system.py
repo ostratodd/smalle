@@ -1,5 +1,6 @@
 import RPi.GPIO as GPIO
 import time
+import logging
 
 class pump_system:
     def __init__(self):
@@ -54,8 +55,10 @@ class pump_system:
         GPIO.add_event_detect(self.flow_pin, GPIO.RISING, callback=self.flowHandler, bouncetime=0)
 
 # Triggers collection of 2L sample
-    def collectSample(self, filter):
+    def collectSample(self, filter, logfile):
+        logging.basicConfig(filename=logfile, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
         print("Starting Collection of 2L!")
+        logging.info("Starting Collection of 2L!")
         total_sampled = 0 # in mL
         duration = 0      # in seconds
         self.setInputFilter(filter)
@@ -65,6 +68,7 @@ class pump_system:
             self.toggleCollection()
             total_sampled += self.water_sampled
             print("Total Sampled: " + str(total_sampled) + "mL")
+            logging.info("Total Sampled: " + str(total_sampled) + "mL")
             duration += 1
 
     # Use to properly select filter, otherwise sets to one

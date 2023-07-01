@@ -34,12 +34,13 @@ class smalle():
     def __init__(self):
 
         # CONFIGURATION VARIABLES
-        self.deployment_duration = 12 # in hours
+        self.deployment_duration = 0.03 # in hours
         self.preview_state = .5 # minutes to stay in preview state before starting record
         self.pump_time_cooldowns = [3,3,3] # The time in between collections ie: for [3,3,3], pump will trigger at hours 3, 6, and 9 
         self.use_pump_sys = False
         self.use_sipm_sys = False
-        self.logintro = "Southwater Belize 2023. Initial setup smalle 1. July 1."
+        self.logintro = "Southwater Belize 2023. Initial setup smalle 4. Fixed lenses. July 1."
+        self.dirname = "Southwater2023smalle4"
 
 
         # SYSTEM VARIABLES
@@ -84,8 +85,8 @@ class smalle():
         print("Preview Mode")
         print(self.logintro)
         logging.info(self.logintro)
-        # Hold in preview mode for the time specified in the setup parameter
-        
+
+        # Hold in preview mode for the time specified in the setup parameter       
         time.sleep(60 * self.preview_state)
         subprocess.Popen(["./cam/interrupt_gstreamer.sh"])
         preview_proc.wait()
@@ -94,8 +95,8 @@ class smalle():
         logging.info('Transitioning to record mode')
         logging.info(current_datetime)
 
-        # Run commands to shutoff display
-        subprocess.run(["xset", "-display", ":0.0", "dpms", "force", "off"])
+        ## Run commands to shutoff display
+        #subprocess.run(["xset", "-display", ":0.0", "dpms", "force", "off"])
                
         # Original version waited for switch to trigger recording 
         # Could make this a different option at some point, to use switch instead
@@ -111,7 +112,7 @@ class smalle():
 
     # Recording State
         # Camera recording is initialized
-        self.recording_process = subprocess.Popen(["./cam/cams_recording.sh"])
+        self.recording_process = subprocess.Popen(["./cam/cams_recording.sh", self.dirname])
 
         # Thread in background that waits for the set deployment duration, which after interrupts the recording process
         delayed_interrupt_gstreamer(self.deployment_duration)
@@ -127,7 +128,7 @@ class smalle():
                 current_datetime = datetime.now()
                 logging.info('Starting pump ' + i + ' at time: ')
                 logging.info(current_datetime)
-                self.pump.collectSample(i+1)
+                self.pump.collectSample(i+1, logfile)
         
         # Waits until recording process ends. delayed_interrupt_gstreamer will interrupt the process.
         self.recording_process.wait()
@@ -135,7 +136,7 @@ class smalle():
             sipm_proc.terminate()
 	
         subprocess.run(["xset", "-display", ":0.0", "dpms", "force", "on"])
-        self.lightbeacon()
+        #self.lightbeacon()
 
 
 # driver code
