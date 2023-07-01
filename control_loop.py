@@ -3,9 +3,18 @@ import signal
 import time
 import RPi.GPIO as GPIO
 import threading
+import logging
+from datetime import datetime
 
 from pump.pump_system import pump_system
 
+
+# Get the current date and time and format the date and time for log file name
+current_datetime = datetime.now()
+formatted_datetime = current_datetime.strftime("%Y-%m-%d_%H.%M.%S")
+logfile = "LOG_" + formatted_datetime + ".log"
+# Configure logging
+logging.basicConfig(filename=logfile, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Interrupts gstreamer processes after given hours. Runs in background.
 def delayed_interrupt_gstreamer(hours):
@@ -77,6 +86,10 @@ class smalle():
         subprocess.Popen(["./cam/interrupt_gstreamer.sh"])
         preview_proc.wait()
         print("Transitioning to record mode")
+        current_datetime = datetime.now()
+        logging.info('Transitioning to record mode')
+        logging.info(current_datetime)
+
         # Run commands to shutoff display
         subprocess.run(["xset", "-display", ":0.0", "dpms", "force", "off"])
                
@@ -106,6 +119,10 @@ class smalle():
         if self.use_pump_sys:
             for i in range(3):
                 time.sleep(3600*self.pump_time_cooldowns[i])
+                print("Starting pump " + i)
+                current_datetime = datetime.now()
+                logging.info('Starting pump ' + i ' at time: ')
+                logging.info(current_datetime)
                 self.pump.collectSample(i+1)
         
         # Waits until recording process ends. delayed_interrupt_gstreamer will interrupt the process.
