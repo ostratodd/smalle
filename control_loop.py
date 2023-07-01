@@ -25,7 +25,8 @@ class smalle():
     def __init__(self):
 
         # CONFIGURATION VARIABLES
-        self.deployment_duration = 10 # in hours
+        self.deployment_duration = 12 # in hours
+        self.preview_state = 5 # minutes to stay in preview state before starting record
         self.pump_time_cooldowns = [3,3,3] # The time in between collections ie: for [3,3,3], pump will trigger at hours 3, 6, and 9 
         self.use_pump_sys = False
         self.use_sipm_sys = False
@@ -70,15 +71,26 @@ class smalle():
         # Use switch to exit and proceed to recording state
         preview_proc = subprocess.Popen(["./cam/cams_preview.sh"])
 
-        # Waits for the switch trigger to interrupt the preview process
-        GPIO.wait_for_edge(self.preview_toggle, GPIO.FALLING)
-        print("Waiting")
+        # Hold in preview mode for the time specified in the setup parameter
+        
+        time.sleep(60 * self.preview_state)
         subprocess.Popen(["./cam/interrupt_gstreamer.sh"])
         preview_proc.wait()
-        print("Done!")
-
+        print("Transitioning to record mode")
         # Run commands to shutoff display
         subprocess.run(["xset", "-display", ":0.0", "dpms", "force", "off"])
+               
+        # Original version waited for switch to trigger recording 
+        # Could make this a different option at some point, to use switch instead
+        ## Waits for the switch trigger to interrupt the preview process
+        #GPIO.wait_for_edge(self.preview_toggle, GPIO.FALLING)
+        #print("Waiting")
+        #subprocess.Popen(["./cam/interrupt_gstreamer.sh"])
+        #preview_proc.wait()
+        #print("Done!")
+
+        ## Run commands to shutoff display
+        #subprocess.run(["xset", "-display", ":0.0", "dpms", "force", "off"])
 
     # Recording State
         # Camera recording is initialized
