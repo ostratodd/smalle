@@ -35,10 +35,12 @@ class smalle():
 
         # CONFIGURATION VARIABLES
         self.deployment_duration = 12 # in hours
-        self.preview_state = 5 # minutes to stay in preview state before starting record
+        self.preview_state = .5 # minutes to stay in preview state before starting record
         self.pump_time_cooldowns = [3,3,3] # The time in between collections ie: for [3,3,3], pump will trigger at hours 3, 6, and 9 
         self.use_pump_sys = False
         self.use_sipm_sys = False
+        self.logintro = "Southwater Belize 2023. Initial setup smalle 1. July 1."
+
 
         # SYSTEM VARIABLES
         self.filters_sampled = 0
@@ -79,7 +81,9 @@ class smalle():
         # Intializes a camera preview
         # Use switch to exit and proceed to recording state
         preview_proc = subprocess.Popen(["./cam/cams_preview.sh"])
-
+        print("Preview Mode")
+        print(self.logintro)
+        logging.info(self.logintro)
         # Hold in preview mode for the time specified in the setup parameter
         
         time.sleep(60 * self.preview_state)
@@ -121,7 +125,7 @@ class smalle():
                 time.sleep(3600*self.pump_time_cooldowns[i])
                 print("Starting pump " + i)
                 current_datetime = datetime.now()
-                logging.info('Starting pump ' + i ' at time: ')
+                logging.info('Starting pump ' + i + ' at time: ')
                 logging.info(current_datetime)
                 self.pump.collectSample(i+1)
         
