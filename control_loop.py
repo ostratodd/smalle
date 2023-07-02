@@ -12,7 +12,7 @@ from pump.pump_system import pump_system
 # Get the current date and time and format the date and time for log file name
 current_datetime = datetime.now()
 formatted_datetime = current_datetime.strftime("%Y-%m-%d_%H.%M.%S")
-logfile = "LOG_" + formatted_datetime + ".log"
+logfile = "LOG_" + self.dirname + "_" + formatted_datetime + ".log"
 # Configure logging
 logging.basicConfig(filename=logfile, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -34,14 +34,13 @@ class smalle():
     def __init__(self):
 
         # CONFIGURATION VARIABLES
-        self.deployment_duration = 0.03 # in hours
-        self.preview_state = .5 # minutes to stay in preview state before starting record
+        self.logintro = "Southwater Belize 2023. Initial setup smalle 4. Fixed lenses. July 1."
+        self.dirname = "Southwater2023smalle4_1hrtest"
+        self.deployment_duration = 1 # in hours
+        self.preview_state = 5 # minutes to stay in preview state before starting record
         self.pump_time_cooldowns = [3,3,3] # The time in between collections ie: for [3,3,3], pump will trigger at hours 3, 6, and 9 
         self.use_pump_sys = False
         self.use_sipm_sys = False
-        self.logintro = "Southwater Belize 2023. Initial setup smalle 4. Fixed lenses. July 1."
-        self.dirname = "Southwater2023smalle4"
-
 
         # SYSTEM VARIABLES
         self.filters_sampled = 0
@@ -95,8 +94,8 @@ class smalle():
         logging.info('Transitioning to record mode')
         logging.info(current_datetime)
 
-        ## Run commands to shutoff display
-        #subprocess.run(["xset", "-display", ":0.0", "dpms", "force", "off"])
+        # Run commands to shutoff display
+        subprocess.run(["xset", "-display", ":0.0", "dpms", "force", "off"])
                
         # Original version waited for switch to trigger recording 
         # Could make this a different option at some point, to use switch instead
