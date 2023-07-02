@@ -9,13 +9,6 @@ from datetime import datetime
 from pump.pump_system import pump_system
 
 
-# Get the current date and time and format the date and time for log file name
-current_datetime = datetime.now()
-formatted_datetime = current_datetime.strftime("%Y-%m-%d_%H.%M.%S")
-logfile = "LOG_" + self.dirname + "_" + formatted_datetime + ".log"
-# Configure logging
-logging.basicConfig(filename=logfile, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
 # Interrupts gstreamer processes after given hours. Runs in background.
 def delayed_interrupt_gstreamer(hours):
     def delayed_execution():
@@ -34,8 +27,8 @@ class smalle():
     def __init__(self):
 
         # CONFIGURATION VARIABLES
-        self.logintro = "Southwater Belize 2023. Initial setup smalle 4. Fixed lenses. July 1."
-        self.dirname = "Southwater2023smalle4_1hrtest"
+        self.logintro = "Southwater Belize 2023. Smalle 4. Fixed lenses."
+        self.dirname = "Southwater2023smalle4_calibrate"
         self.deployment_duration = 1 # in hours
         self.preview_state = 5 # minutes to stay in preview state before starting record
         self.pump_time_cooldowns = [3,3,3] # The time in between collections ie: for [3,3,3], pump will trigger at hours 3, 6, and 9 
@@ -76,7 +69,13 @@ class smalle():
             exit(0)
 
     def run(self):
-
+	# Configure logging
+        # Get the current date and time and format the date and time from JetsonOS for log file name
+        current_datetime = datetime.now()
+        formatted_datetime = current_datetime.strftime("%Y-%m-%d_%H.%M.%S")
+        logfile = "LOG_" + self.dirname + "_" + formatted_datetime + ".log"
+        logging.basicConfig(filename=logfile, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+        
     # Preview State
         # Intializes a camera preview
         # Use switch to exit and proceed to recording state
