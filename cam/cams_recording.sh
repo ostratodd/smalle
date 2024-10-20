@@ -1,13 +1,9 @@
 #!/bin/bash
 
 dirname=$1
-echo "Creating directory for video using command line argument"
-echo $dirname
-#mkdir -p ./recordings/"$current_date_time"
-#cd ./recordings/"$current_date_time"
 
-mkdir -p ./recordings/"$dirname"
-cd ./recordings/"$dirname"
+mkdir -p ./"$dirname"
+cd ./"$dirname"
 
 
 gst-launch-1.0 -e rtspsrc location=rtsp://192.168.1.250:554/h264 ! rtph264depay ! h264parse ! nvv4l2decoder enable-max-performance=1 ! nvvidconv ! 'video/x-raw(memory:NVMM), format=RGBA' ! m.sink_0 \

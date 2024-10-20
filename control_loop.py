@@ -4,6 +4,7 @@ import time
 import RPi.GPIO as GPIO
 import threading
 import logging
+from pathlib import Path
 from datetime import datetime
 
 from pump.pump_system import pump_system
@@ -27,10 +28,11 @@ class smalle():
     def __init__(self):
 
         # CONFIGURATION VARIABLES
-        self.logintro = "Southwater Belize 2023. Smalle 4. Fixed lenses."
-        self.dirname = "Southwater2023smalle4_calibrate"
-        self.deployment_duration = 1 # in hours
-        self.preview_state = 5 # minutes to stay in preview state before starting record
+        self.logintro = "Southwater Belize 2023. July 2. Smalle 3. Dark quadrat."
+        self.dirname = "recordings/Southwater2023smalle3_dark"
+        self.dirname = self.check_and_update_dir(self.dirname)
+        self.deployment_duration = 3 # in hours
+        self.preview_state = 1 # minutes to stay in preview state before starting record
         self.pump_time_cooldowns = [3,3,3] # The time in between collections ie: for [3,3,3], pump will trigger at hours 3, 6, and 9 
         self.use_pump_sys = False
         self.use_sipm_sys = False
@@ -43,8 +45,17 @@ class smalle():
         # PIN DEFINITION
         self.preview_toggle = 32
         self.graceful_shutoff_toggle = 31
-
         self.setUp()
+        
+    def check_and_update_dir(self, dirname):
+        i = 1
+        new_dirname = dirname
+        while True:
+            if not Path(new_dirname).exists():
+                break
+            new_dirname = f"{dirname}_{i}"
+            i += 1
+        return new_dirname
 
     # Sets up all of the GPIO pins required for the cam system
     def setUp(self):
@@ -68,32 +79,20 @@ class smalle():
             self.lightbeacon()
             exit(0)
 
-    def run(self):
-	# Configure logging
-        # Get the current date and time and format the date and time from JetsonOS for log file name
-        current_datetime = datetime.now()
-        formatted_datetime = current_datetime.strftime("%Y-%m-%d_%H.%M.%S")
-        logfile = "LOG_" + self.dirname + "_" + formatted_datetime + ".log"
-        logging.basicConfig(filename=logfile, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-        
+    def run(self):        
     # Preview State
         # Intializes a camera preview
         # Use switch to exit and proceed to recording state
         preview_proc = subprocess.Popen(["./cam/cams_preview.sh"])
         print("Preview Mode")
-        print(self.logintro)
-        logging.info(self.logintro)
 
         # Hold in preview mode for the time specified in the setup parameter       
         time.sleep(60 * self.preview_state)
         subprocess.Popen(["./cam/interrupt_gstreamer.sh"])
         preview_proc.wait()
         print("Transitioning to record mode")
-        current_datetime = datetime.now()
-        logging.info('Transitioning to record mode')
-        logging.info(current_datetime)
 
-        # Run commands to shutoff display
+        #****Run commands to shutoff display in record mode***********************************
         subprocess.run(["xset", "-display", ":0.0", "dpms", "force", "off"])
                
         # Original version waited for switch to trigger recording 
@@ -115,6 +114,18 @@ class smalle():
         # Thread in background that waits for the set deployment duration, which after interrupts the recording process
         delayed_interrupt_gstreamer(self.deployment_duration)
 
+	# Configure logging Don't log until after Preview mode
+        # Get the current date and time and format the date and time from JetsonOS for log file name
+        current_datetime = datetime.now()
+        formatted_datetime = current_datetime.strftime("%Y-%m-%d_%H.%M.%S")
+        logfile = "LOG_" + formatted_datetime + ".log"
+        logging.basicConfig(filename=logfile, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+        current_datetime = datetime.now()
+        logging.info(self.logintro)
+        logging.info('Transitioning to record mode')
+        logging.info(current_datetime)
+        logging.info("Writing to directory " + self.dirname)
+
         if self.use_sipm_sys:
             sipm_proc = subprocess.Popen(["./command/to/sipm"]) ## TODO: create callable SiPM python script
         
@@ -122,9 +133,9 @@ class smalle():
         if self.use_pump_sys:
             for i in range(3):
                 time.sleep(3600*self.pump_time_cooldowns[i])
-                print("Starting pump " + i)
+                print("Starting pump " + str(i))
                 current_datetime = datetime.now()
-                logging.info('Starting pump ' + i + ' at time: ')
+                logging.info('Starting pump ' + str(i) + ' at time: ')
                 logging.info(current_datetime)
                 self.pump.collectSample(i+1, logfile)
         
